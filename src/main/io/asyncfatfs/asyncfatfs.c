@@ -61,7 +61,17 @@
 #endif
 
 #ifndef AFATFS_NUM_CACHE_SECTORS
+#ifdef PICO
+// RP2350x has 520 KB SRAM; bump cache to 32 sectors (16 KB) so the writer
+// has more ride-through across SD card internal garbage-collection stalls
+// that V30/A2 cards still take periodically. Validated on OpenFC-ECO V0.3
+// at sample_rate=1/2 (~132 KB/s blackbox throughput): 22% silent frame
+// drops with 11-sector cache, 0% drops with 32-sector cache, no other
+// changes. STM32 boards keep the original 11-sector cache.
+#define AFATFS_NUM_CACHE_SECTORS 32
+#else
 #define AFATFS_NUM_CACHE_SECTORS 11
+#endif
 #endif
 
 // FAT filesystems are allowed to differ from these parameters, but we choose not to support those weird filesystems:
