@@ -166,4 +166,3 @@
 #undef USE_ESC_SENSOR
 
 #undef USE_RPM_LIMIT
-#undef USE_OSD_HD
