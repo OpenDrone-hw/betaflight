@@ -66,8 +66,8 @@ static bool fbOsdLoadFont(void)
     // Retrieve font data from flash if present. Otherwise defaults to baked-in font in font_betaflight.c.
     uint8_t *ptr = (uint8_t *)&__fontdata_start;
     if (0 != memcmp(ptr, fontDataMagic, 4)) {
-        bprintf("FONT did not detect font data in flash");
-        return false;
+        bprintf("FONT did not detect font data in flash, using baked-in font");
+        return true;
     }
 
     ptr += 4;
@@ -169,6 +169,11 @@ fbOsdInitStatus_e fbOsdInit(const struct fbOsdConfig_s *fbOsdConfig, const struc
     lastHSyncs = hSyncs;
     lastRange = range;
     return FB_OSD_INIT_INITIALISING;
+}
+
+uint32_t fbOsdGetVsyncCount(void)
+{
+    return osdPioGetVsyncCount();
 }
 
 bool fbOsdReInitIfRequired(bool forceStallCheck)

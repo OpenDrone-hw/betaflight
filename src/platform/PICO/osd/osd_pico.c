@@ -42,6 +42,8 @@
 #include "osd/osd.h"
 #include "pg/vcd.h"
 
+#include "platform/dma.h"
+
 // pico sdk
 #include "hardware/irq.h"
 #include "hardware/pio.h"
@@ -221,6 +223,12 @@ static bool osd_init_device(bool isPAL, int displayLines, int transferWords)
     }
 
     pio_set_gpio_base(osdPio, osdPioBase);
+    if (!pio_can_add_program(osdPio, isPAL ? &osd_tx_pal_program : &osd_tx_ntsc_program)) {
+        // The tx program needs 31 of the 32 instruction slots, so any other program
+        // resident on this PIO block (e.g. the WS2812 ledstrip driver) will starve it out.
+        bprintf("*** pico osd tx program does not fit in PIO instruction memory");
+        return false;
+    }
     osd_tx_offset = pio_add_program(osdPio, isPAL ? &osd_tx_pal_program : &osd_tx_ntsc_program);
     osd_tx_sm = pio_claim_unused_sm(osdPio, false);
     if (osd_tx_sm < 0) {
@@ -366,8 +374,16 @@ bool osdPioStartDetection(void)
     }
 
     pio_set_gpio_base(osdPio, osdPioBase);
+    if (!pio_can_add_program(osdPio, &osd_count_sync_program)) {
+        bprintf("*** pico osd count_sync program does not fit in PIO instruction memory");
+        return false;
+    }
     osd_tx_offset = pio_add_program(osdPio, &osd_count_sync_program);
     osd_tx_sm = pio_claim_unused_sm(osdPio, false);
+    if (osd_tx_sm < 0) {
+        bprintf("*** pico osd count_sync failed to claim state machine");
+        return false;
+    }
     pio_sm_config config = osd_count_sync_program_get_default_config(osd_tx_offset);
 
     pio_sm_set_consecutive_pindirs(osdPio, osd_tx_sm, osd_sync_gpio, 1, false /* input */);
@@ -491,8 +507,16 @@ static void vsync_callback_debug(void)
 }
 #endif // #ifdef DEBUG_OSD_FB_PICO
 
+static volatile uint32_t vsyncCallbackCount;
+
+uint32_t osdPioGetVsyncCount(void)
+{
+    return vsyncCallbackCount;
+}
+
 static void vsync_callback(void)
 {
+    vsyncCallbackCount++;
     // Start new dma as soon as possible
     // * stop any dma in progress
     // * flip buffer pointers

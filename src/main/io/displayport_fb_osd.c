@@ -267,4 +267,9 @@ bool fbOsdDisplayPortInit(const vcdProfile_t *vcdProfile, displayPort_t **displa
 
     return true;
 }
+
+bool fbOsdIsDetected(void)
+{
+    return fbOsdDeviceDetected;
+}
 #endif // ENABLE_FB_OSD

@@ -27,3 +27,4 @@
 
 struct vcdProfile_s;
 bool fbOsdDisplayPortInit(const struct vcdProfile_s *vcdProfile, displayPort_t **displayPort);
+bool fbOsdIsDetected(void);

@@ -44,5 +44,6 @@ void osdPioRedrawBackground(void);
 
 // testing, probably don't need
 // bool osdPioInitDevice( const struct vcdProfile_s *vcdProfile);
+uint32_t osdPioGetVsyncCount(void);
 void osdPioEnableDevice(void);
 void osdPioDisableDevice(void);

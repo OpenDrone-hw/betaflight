@@ -114,6 +114,10 @@ bool cliMode = false;
 
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
+#if ENABLE_FB_OSD
+#include "drivers/fb_osd_impl.h"
+#include "io/displayport_fb_osd.h"
+#endif
 #include "io/dronecan/dronecan.h"
 #include "io/flashfs.h"
 #include "io/gimbal.h"
@@ -6153,6 +6157,12 @@ static void cliStatus(const char *cmdName, char *cmdline)
     if (osdDisplayPort) {
         cliPrintf("(%u x %u)", osdDisplayPort->cols, osdDisplayPort->rows);
     }
+#if ENABLE_FB_OSD
+    if (displayPortDeviceType == OSD_DISPLAYPORT_DEVICE_FBOSD) {
+        cliPrintf(" sync %s vsyncs %lu", fbOsdIsDetected() ? "LOCKED" : "NOT DETECTED",
+                  (unsigned long)fbOsdGetVsyncCount());
+    }
+#endif
     cliPrintLinefeed();
 #endif
 
