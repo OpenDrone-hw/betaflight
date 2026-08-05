@@ -391,8 +391,9 @@ bool dshotPwmDevInit(motorDevice_t *device, const motorDevConfig_t *motorConfig)
 
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCountProvisional; motorIndex++) {
         outgoingPacket[motorIndex] = -1;
-        int pinIndex = DEFIO_TAG_PIN(motorConfig->ioTags[motorIndex]);
-        IO_t io = IOGetByTag(motorConfig->ioTags[motorIndex]);
+        const unsigned reorderedMotorIndex = motorConfig->motorOutputReordering[motorIndex];
+        int pinIndex = DEFIO_TAG_PIN(motorConfig->ioTags[reorderedMotorIndex]);
+        IO_t io = IOGetByTag(motorConfig->ioTags[reorderedMotorIndex]);
         bprintf("dshot motor index %d on pin %d",motorIndex, IO_Pin(io));
         if (!IOIsFreeOrPreinit(io)) {
             bprintf("io pin not free");
@@ -408,10 +409,8 @@ bool dshotPwmDevInit(motorDevice_t *device, const motorDevConfig_t *motorConfig)
             return false;
         }
 
-        IOInit(io, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
+        IOInit(io, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex));
 
-        // TODO: take account of motor reordering,
-        // cf. versions of  pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t reorderedMotorIndex, motorProtocolTypes_e pwmProtocolType, uint8_t output)
         dshotMotors[motorIndex].pinIndex = pinIndex;
         dshotMotors[motorIndex].io = io;
         dshotMotors[motorIndex].pio = dshotPio;
