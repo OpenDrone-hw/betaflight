@@ -590,9 +590,14 @@ if (beaconTimeDiff < DSHOT_BEACON_GUARD_DELAY_US && beaconTimeDiff >= 0) {
 }
 
 if (isMotorProtocolDshot()) {
-    #if defined(USE_ESC_SENSOR) && defined(USE_DSHOT_TELEMETRY)
+    #if defined(USE_DSHOT_TELEMETRY)
     // Try to activate extended DSHOT telemetry only if no esc sensor exists and dshot telemetry is active
-    if (!featureIsEnabled(FEATURE_ESC_SENSOR) && useDshotTelemetry) {
+    #if defined(USE_ESC_SENSOR)
+    const bool escSensorInUse = featureIsEnabled(FEATURE_ESC_SENSOR);
+    #else
+    const bool escSensorInUse = false;
+    #endif
+    if (!escSensorInUse && useDshotTelemetry) {
         dshotCleanTelemetryData();
         if (motorConfig()->dev.useDshotEdt) {
             dshotCommandWrite(ALL_MOTORS, getMotorCount(), DSHOT_CMD_EXTENDED_TELEMETRY_ENABLE, DSHOT_CMD_TYPE_INLINE);
