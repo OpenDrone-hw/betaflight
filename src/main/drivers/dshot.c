@@ -150,6 +150,10 @@ FAST_CODE uint16_t prepareDshotPacket(dshotProtocolControl_t *pcb)
 
 #ifdef USE_DSHOT_TELEMETRY
 
+// DEBUG_ESC_EDT splits the debug buffer in two halves, temperature then current,
+// so it covers this many motors
+#define DEBUG_ESC_EDT_MOTOR_COUNT (DEBUG16_VALUE_COUNT / 2)
+
 FAST_DATA_ZERO_INIT dshotTelemetryState_t dshotTelemetryState;
 
 FAST_DATA_ZERO_INIT static pt1Filter_t motorFreqLpf[MAX_SUPPORTED_MOTORS];
@@ -258,6 +262,20 @@ static void dshotUpdateTelemetryData(uint8_t motorIndex, dshotTelemetryType_t ty
     // Update max temp
     if ((type == DSHOT_TELEMETRY_TYPE_TEMPERATURE) && (value > dshotTelemetryState.motorState[motorIndex].maxTemp)) {
         dshotTelemetryState.motorState[motorIndex].maxTemp = value;
+    }
+
+    // Update debug buffer, temperature in degrees C for motors 0-3, current in amps for the same motors
+    if (motorIndex < DEBUG_ESC_EDT_MOTOR_COUNT) {
+        switch (type) {
+        case DSHOT_TELEMETRY_TYPE_TEMPERATURE:
+            DEBUG_SET(DEBUG_ESC_EDT, motorIndex, value);
+            break;
+        case DSHOT_TELEMETRY_TYPE_CURRENT:
+            DEBUG_SET(DEBUG_ESC_EDT, motorIndex + DEBUG_ESC_EDT_MOTOR_COUNT, value);
+            break;
+        default:
+            break;
+        }
     }
 }
 

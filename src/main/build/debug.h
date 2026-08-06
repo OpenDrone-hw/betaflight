@@ -131,6 +131,7 @@ typedef enum {
     DEBUG_AUTOPILOT_PID,
     DEBUG_POSITION_NAV,
     DEBUG_AUTOPILOT_STOP,
+    DEBUG_ESC_EDT,
     DEBUG_COUNT
 } debugType_e;
 
